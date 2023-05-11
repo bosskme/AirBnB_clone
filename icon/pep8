@@ -1,0 +1,4 @@
+#!/bin/bash
+# This script is used for checking Python code against the PEP8
+
+find . -name "*.py" | xargs pep8
