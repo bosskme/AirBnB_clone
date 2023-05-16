@@ -1,50 +1,67 @@
 #!/usr/bin/python3
-""" Class BaseModel """
-from datetime import datetime
+"""Defines the BaseModel class."""
 from uuid import uuid4
-import models
+from datetime import datetime
 
 
 class BaseModel:
-    ''' construct '''
+    """Base model that defines all common
+    attributes/methods for other classes
+    Methods:
+        __init__(self, *args, **kwargs)
+        __str__(self)
+        __save(self)
+        __repr__(self)
+        to_dict(self)
+    """
 
     def __init__(self, *args, **kwargs):
-        """ Construct """
-        if kwargs:
-            for key, value in kwargs.items():
-                if key == '__class__':
-                    continue
-                elif key == 'updated_at':
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
-                elif key == 'created_at':
-                    value = datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%f")
-                if 'id' not in kwargs.keys():
-                    self.id = str(uuid4())
-                if 'created_at' not in kwargs.keys():
-                    self.created_at = datetime.now()
-                if 'updated_at' not in kwargs.keys():
-                    self.updated_at = datetime.now()
-                setattr(self, key, value)
-        else:
-            self.id = str(uuid4())
-            self.created_at = datetime.now()
-            self.updated_at = self.created_at
-            models.storage.new(self)
+        """Initialize a new BaseModel.
 
-    def __str__(self):
-        """ String """
-        return('[' + type(self).__name__ + '] (' + str(self.id) +
-               ') ' + str(self.__dict__))
+        Args:
+            *args (any): Unused.
+            **kwargs (dict): Key/value pairs of attributes.
+        """
+        from models import storage
+
+        dt_form = "%Y-%m-%dT%H:%M:%S.%f"
+        self.id = str(uuid4())
+        self.created_at = datetime.now()
+        self.updated_at = datetime.now()
+        if len(kwargs) != 0:
+            for k, v in kwargs.items():
+                if k == "created_at" or k == "updated_at":
+                    self.__dict__[k] = datetime.strptime(v, dt_form)
+                else:
+                    self.__dict__[k] = v
+        else:
+            storage.new(self)
 
     def save(self):
-        """ save function """
+        """Update updated_at with the current datetime."""
+        from models import storage
+
         self.updated_at = datetime.now()
-        models.storage.save()
+        storage.save()
 
     def to_dict(self):
-        """ Return a dictonary """
-        aux_dict = self.__dict__.copy()
-        aux_dict['__class__'] = self.__class__.__name__
-        aux_dict['created_at'] = self.created_at.isoformat()
-        aux_dict['updated_at'] = self.updated_at.isoformat()
-        return aux_dict
+        """Return the dictionary of the BaseModel instance.
+
+        Includes the key/value pair __class__ representing
+        the class name of the object.
+        """
+        our_dict = self.__dict__.copy()
+        our_dict["created_at"] = self.created_at.isoformat()
+        our_dict["updated_at"] = self.updated_at.isoformat()
+        our_dict["__class__"] = self.__class__.__name__
+        return our_dict
+
+    def __str__(self):
+        """Return the print/str representation of the BaseModel instance."""
+        clname = self.__class__.__name__
+        return "[{}] ({}) {}".format(clname, self.id, self.__dict__)
+
+    def __repr__(self):
+        """returns a string representation
+        """
+        return self.__str__()
