@@ -1,62 +1,45 @@
 #!/usr/bin/python3
-
-"""Define the FileStorage Class."""
+""" class FileStorage
+    serializes instances to a JSON file
+    and deserializes JSON file to instances """
 import json
-from models.review import Review
+import uuid
+import os
+from datetime import datetime
+from models.base_model import BaseModel
+from models.user import User
+from models.state import State
+from models.city import City
 from models.amenity import Amenity
 from models.place import Place
-from models.city import City
-from models.state import State
-from models.user import User
-from models.base_model import BaseModel
+from models.review import Review
+
 
 class FileStorage:
-    """Class for FileStorage"""
-
+    """ construct """
     __file_path = "file.json"
-    __objects = dict()
+    __objects = {}
 
     def all(self):
-        """return the dictionary __objects"""
-        return self.__objects
+        """ return dictionary objects """
+        return FileStorage.__objects
 
     def new(self, obj):
-        """sets obj in __objects with key <obj class name>.id"""
-        self.__objects[obj.__class__.__name__ + '.' + obj.id] = obj
+        """ sets in dictionary the obj with key <obj class name>.id """
+        FileStorage.__objects[obj.__class__.__name__ + "." + str(obj.id)] = obj
 
     def save(self):
-        """serialize __objects to JSON file"""
-        temp = dict()
-        for keys in self.__objects.keys():
-            temp[keys] = self.__objects[keys].to_dict()
-        with open(self.__file_path, mode='w') as jsonfile:
-            json.dump(temp, jsonfile)
+        """ serializes objectss to the JSON file (path: __file_path) """
+        with open(FileStorage.__file_path, 'w', encoding='utf-8') as fname:
+            new_dict = {key: obj.to_dict() for key, obj in
+                        FileStorage.__objects.items()}
+            json.dump(new_dict, fname)
 
     def reload(self):
-        """deserializes the JSON file to __objects"""
-        from ..base_model import BaseModel
-        from ..user import User
-        from ..state import State
-        from ..city import City
-        from ..amenity import Amenity
-        from ..place import Place
-        from ..review import Review
-
-        if exists(self.__file_path):
-            with open(self.__file_path) as jsonfile:
-                decereal = json.load(jsonfile)
-            for keys in decereal.keys():
-                if decereal[keys]['__class__'] == "BaseModel":
-                    self.__objects[keys] = BaseModel(**decereal[keys])
-                elif decereal[keys]['__class__'] == "User":
-                    self.__objects[keys] = User(**decereal[keys])
-                elif decereal[keys]['__class__'] == "State":
-                    self.__objects[keys] = State(**decereal[keys])
-                elif decereal[keys]['__class__'] == "City":
-                    self.__objects[keys] = City(**decereal[keys])
-                elif decereal[keys]['__class__'] == "Amenity":
-                    self.__objects[keys] = Amenity(**decereal[keys])
-                elif decereal[keys]['__class__'] == "Place":
-                    self.__objects[keys] = Place(**decereal[keys])
-                elif decereal[keys]['__class__'] == "Review":
-                    self.__objects[keys] = Review(**decereal[keys])
+        """ Reload the file """
+        if (os.path.isfile(FileStorage.__file_path)):
+            with open(FileStorage.__file_path, 'r', encoding="utf-8") as fname:
+                l_json = json.load(fname)
+                for key, val in l_json.items():
+                    FileStorage.__objects[key] = eval(
+                        val['__class__'])(**val)
