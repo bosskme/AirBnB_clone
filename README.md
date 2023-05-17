@@ -277,5 +277,4 @@ $ python3 unittest -m tests/test_console.py
 ```
 
 ## Authors :black_nib:
-* **Damola M Ojere** <[Dwise8901](https://github.com/Dwise8901)>
 * **Kingsley C Onele** <[Bosskme](https://github.com/bosskme)>
